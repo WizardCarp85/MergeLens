@@ -227,3 +227,4 @@ mergelens ui
 | **Push audit notes to remote** | `mergelens sync push` |
 | **Pull audit notes from remote** | `mergelens sync pull` |
 | **Launch Web Dashboard** | `mergelens ui` |
+

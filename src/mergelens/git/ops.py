@@ -95,12 +95,13 @@ def get_merge_context(root: Path, preview_branch: str | None = None) -> ActiveMe
             is_preview=True,
         )
 
-    op, theirs_sha = detect_operation(git_dir)
-    if op == Operation.NONE or not theirs_sha:
+    op, detected_theirs = detect_operation(git_dir)
+    if op == Operation.NONE or not detected_theirs:
         raise NoMergeInProgress(
             "No merge, cherry-pick, or rebase conflict in progress.",
             hint="Start a merge first, or use `mergelens status --preview <branch>`.",
         )
+    theirs_sha = detected_theirs
 
     head_res = run_git(["rev-parse", "HEAD"], cwd=root)
     head_sha = head_res.stdout.strip()
