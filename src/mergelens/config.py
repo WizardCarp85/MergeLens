@@ -52,7 +52,7 @@ class Config:
 
     @property
     def state_dir(self) -> Path:
-        """`.git/mergelens` — our scratch area. Falls back to `.mergelens` if `.git` is read-only."""
+        """`.git/mergelens` — scratch area. Falls back to `.mergelens` if `.git` is read-only."""
         preferred = self.root / ".git" / "mergelens"
         try:
             preferred.mkdir(parents=True, exist_ok=True)

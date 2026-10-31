@@ -11,7 +11,11 @@ from rich.table import Table
 
 from mergelens import config
 from mergelens.cli._console import advisory_footer, err, out
-from mergelens.decision.manager import clear_pending_decisions, load_pending_decisions, save_decision
+from mergelens.decision.manager import (
+    clear_pending_decisions,
+    load_pending_decisions,
+    save_decision,
+)
 from mergelens.git.ops import detect_operation
 from mergelens.models import Decision
 

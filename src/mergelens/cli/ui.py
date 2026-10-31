@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import contextlib
 import secrets
 import socket
 import webbrowser
@@ -11,7 +12,7 @@ import typer
 import uvicorn
 from rich.panel import Panel
 
-from mergelens.cli._console import err, out
+from mergelens.cli._console import out
 from mergelens.server.app import create_app
 
 
@@ -34,19 +35,19 @@ def main(
 
     dashboard_url = f"http://127.0.0.1:{bind_port}/#token={token}"
 
-    out.print(Panel(
-        f"[bold green]MergeLens Dashboard running at:[/bold green]\n"
-        f"[cyan]{dashboard_url}[/cyan]\n\n"
-        f"Guarded by local token in URL hash. Press Ctrl+C to stop.",
-        title="mergelens ui",
-        title_align="left",
-    ))
+    out.print(
+        Panel(
+            f"[bold green]MergeLens Dashboard running at:[/bold green]\n"
+            f"[cyan]{dashboard_url}[/cyan]\n\n"
+            f"Guarded by local token in URL hash. Press Ctrl+C to stop.",
+            title="mergelens ui",
+            title_align="left",
+        )
+    )
 
     if open_browser:
-        try:
+        with contextlib.suppress(Exception):
             webbrowser.open(dashboard_url)
-        except Exception:
-            pass
 
     app = create_app(token=token)
     try:

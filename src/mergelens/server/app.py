@@ -7,11 +7,10 @@ import secrets
 from pathlib import Path
 from typing import Any
 
-from fastapi import Depends, FastAPI, HTTPException, Request, status
+from fastapi import Depends, FastAPI, HTTPException, status
 from fastapi.middleware.cors import CORSMiddleware
-from fastapi.responses import FileResponse, JSONResponse
+from fastapi.responses import FileResponse
 from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
-from fastapi.staticfiles import StaticFiles
 
 from mergelens import config
 from mergelens.cli.status import build_status_hunks
@@ -88,13 +87,17 @@ def create_app(token: str | None = None, static_dir: Path | None = None) -> Fast
         raise HTTPException(status_code=404, detail=f"Hunk {hunk_id} not found.")
 
     @app.get("/api/evidence/{sha}")
-    async def get_evidence_endpoint(sha: str, credentials: str = Depends(verify_token)) -> dict[str, Any]:
+    async def get_evidence_endpoint(
+        sha: str, credentials: str = Depends(verify_token)
+    ) -> dict[str, Any]:
         cfg = config.load()
         report = collect_evidence(cfg.root, sha, cfg)
         return report.model_dump(mode="json")
 
     @app.get("/api/timeline/{sha}")
-    async def get_timeline_endpoint(sha: str, credentials: str = Depends(verify_token)) -> list[dict[str, Any]]:
+    async def get_timeline_endpoint(
+        sha: str, credentials: str = Depends(verify_token)
+    ) -> list[dict[str, Any]]:
         cfg = config.load()
         return get_timeline(cfg.root, sha)
 
@@ -105,7 +108,9 @@ def create_app(token: str | None = None, static_dir: Path | None = None) -> Fast
         return [r.model_dump(mode="json") for r in records]
 
     @app.post("/api/decisions")
-    async def post_decision(decision: Decision, credentials: str = Depends(verify_token)) -> dict[str, Any]:
+    async def post_decision(
+        decision: Decision, credentials: str = Depends(verify_token)
+    ) -> dict[str, Any]:
         cfg = config.load()
         try:
             ctx = get_merge_context(cfg.root)
@@ -143,4 +148,3 @@ def create_app(token: str | None = None, static_dir: Path | None = None) -> Fast
             raise HTTPException(status_code=404, detail="File not found")
 
     return app
-

@@ -8,7 +8,6 @@ from __future__ import annotations
 import json
 import re
 from pathlib import Path
-from typing import Sequence
 
 from mergelens import NOTES_REF
 from mergelens.config import Config
@@ -69,8 +68,20 @@ def collect_evidence(
         for key, target in [("prod", "prod"), ("uat", "uat"), ("ci", "ci")]:
             if key in note_data:
                 val = str(note_data[key]).lower()
-                status = Status.PASS if val in {"pass", "passed", "true", "yes", "success"} else Status.FAIL if val in {"fail", "failed", "false", "no"} else Status.UNKNOWN
-                setattr(report, target, EvidenceItem(status=status, source="notes", detail=note_data.get(f"{key}_detail")))
+                status = (
+                    Status.PASS
+                    if val in {"pass", "passed", "true", "yes", "success"}
+                    else Status.FAIL
+                    if val in {"fail", "failed", "false", "no"}
+                    else Status.UNKNOWN
+                )
+                setattr(
+                    report,
+                    target,
+                    EvidenceItem(
+                        status=status, source="notes", detail=note_data.get(f"{key}_detail")
+                    ),
+                )
 
     # Layer 2: Commit Trailers
     info = get_commit_log_info(root, commit_sha)
@@ -78,26 +89,43 @@ def collect_evidence(
     trailers = parse_trailers(msg)
     report.trailers = trailers
 
-    if report.prod.status == Status.UNKNOWN:
-        if "prod" in trailers or "production" in trailers:
-            val = trailers.get("prod", trailers.get("production", "")).lower()
-            status = Status.PASS if val in {"pass", "true", "deployed", "verified"} else Status.FAIL if val in {"fail", "false"} else Status.UNKNOWN
-            report.prod = EvidenceItem(status=status, source="trailers", detail=f"Prod trailer: {val}")
+    if report.prod.status == Status.UNKNOWN and ("prod" in trailers or "production" in trailers):
+        val = trailers.get("prod", trailers.get("production", "")).lower()
+        status = (
+            Status.PASS
+            if val in {"pass", "true", "deployed", "verified"}
+            else Status.FAIL
+            if val in {"fail", "false"}
+            else Status.UNKNOWN
+        )
+        report.prod = EvidenceItem(
+            status=status, source="trailers", detail=f"Prod trailer: {val}"
+        )
 
-    if report.uat.status == Status.UNKNOWN:
-        if "uat" in trailers:
-            val = trailers["uat"].lower()
-            status = Status.PASS if val in {"pass", "passed", "verified"} else Status.FAIL if val in {"fail", "failed"} else Status.UNKNOWN
-            report.uat = EvidenceItem(status=status, source="trailers", detail=f"UAT trailer: {val}")
+    if report.uat.status == Status.UNKNOWN and "uat" in trailers:
+        val = trailers["uat"].lower()
+        status = (
+            Status.PASS
+            if val in {"pass", "passed", "verified"}
+            else Status.FAIL
+            if val in {"fail", "failed"}
+            else Status.UNKNOWN
+        )
+        report.uat = EvidenceItem(
+            status=status, source="trailers", detail=f"UAT trailer: {val}"
+        )
 
-    if report.ci.status == Status.UNKNOWN:
-        if "ci" in trailers or "tested-by" in trailers:
-            val = trailers.get("ci", trailers.get("tested-by", "")).lower()
-            status = Status.PASS if val not in {"fail", "failed", "broken"} else Status.FAIL
-            report.ci = EvidenceItem(status=status, source="trailers", detail=f"CI trailer: {val}")
+    if report.ci.status == Status.UNKNOWN and ("ci" in trailers or "tested-by" in trailers):
+        val = trailers.get("ci", trailers.get("tested-by", "")).lower()
+        status = Status.PASS if val not in {"fail", "failed", "broken"} else Status.FAIL
+        report.ci = EvidenceItem(status=status, source="trailers", detail=f"CI trailer: {val}")
 
     # Layer 3: Origin-linked evidence
-    if origin and origin.source_sha and (report.prod.status == Status.UNKNOWN or report.uat.status == Status.UNKNOWN):
+    if (
+        origin
+        and origin.source_sha
+        and (report.prod.status == Status.UNKNOWN or report.uat.status == Status.UNKNOWN)
+    ):
         upstream_evidence = collect_evidence(root, origin.source_sha, cfg, origin=None)
         if report.prod.status == Status.UNKNOWN and upstream_evidence.prod.status != Status.UNKNOWN:
             report.prod = EvidenceItem(
@@ -126,7 +154,11 @@ def collect_evidence(
         if chk.ok and is_ancestor(root, commit_sha, prod_ref):
             ancestry_matches.append(prod_ref)
             if report.prod.status == Status.UNKNOWN:
-                report.prod = EvidenceItem(status=Status.PASS, source=f"ancestry ({prod_ref})", detail=f"Contained in branch {prod_ref}")
+                report.prod = EvidenceItem(
+                    status=Status.PASS,
+                    source=f"ancestry ({prod_ref})",
+                    detail=f"Contained in branch {prod_ref}",
+                )
             break
 
     # Test UAT branch
@@ -135,7 +167,11 @@ def collect_evidence(
         if chk.ok and is_ancestor(root, commit_sha, uat_ref):
             ancestry_matches.append(uat_ref)
             if report.uat.status == Status.UNKNOWN:
-                report.uat = EvidenceItem(status=Status.PASS, source=f"ancestry ({uat_ref})", detail=f"Contained in branch {uat_ref}")
+                report.uat = EvidenceItem(
+                    status=Status.PASS,
+                    source=f"ancestry ({uat_ref})",
+                    detail=f"Contained in branch {uat_ref}",
+                )
             break
 
     # Test mainline branch
@@ -144,7 +180,11 @@ def collect_evidence(
         if chk.ok and is_ancestor(root, commit_sha, main_ref):
             ancestry_matches.append(main_ref)
             if report.ci.status == Status.UNKNOWN:
-                report.ci = EvidenceItem(status=Status.PASS, source=f"ancestry ({main_ref})", detail=f"Contained in branch {main_ref}")
+                report.ci = EvidenceItem(
+                    status=Status.PASS,
+                    source=f"ancestry ({main_ref})",
+                    detail=f"Contained in branch {main_ref}",
+                )
             break
 
     report.ancestry = ancestry_matches
@@ -158,20 +198,25 @@ def get_timeline(root: Path, commit_sha: str) -> list[dict[str, str]]:
     events = []
     info = get_commit_log_info(root, commit_sha)
     if info.get("date"):
-        events.append({
-            "when": info.get("date", ""),
-            "event": "Commit authored",
-            "detail": f"{info.get('subject', '')} by {info.get('author_name', '')}",
-        })
+        events.append(
+            {
+                "when": info.get("date", ""),
+                "event": "Commit authored",
+                "detail": f"{info.get('subject', '')} by {info.get('author_name', '')}",
+            }
+        )
 
     # Check notes
     note_data = read_notes_evidence(root, commit_sha)
     if note_data:
-        events.append({
-            "when": note_data.get("when", note_data.get("decided_at", "")),
-            "event": "Audit note recorded",
-            "detail": f"Decision: keep={note_data.get('keep')}, reason={note_data.get('reason')}",
-        })
+        keep_val = note_data.get("keep")
+        reason_val = note_data.get("reason")
+        events.append(
+            {
+                "when": note_data.get("when", note_data.get("decided_at", "")),
+                "event": "Audit note recorded",
+                "detail": f"Decision: keep={keep_val}, reason={reason_val}",
+            }
+        )
 
     return events
-

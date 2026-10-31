@@ -8,7 +8,6 @@ from mergelens.models import (
     EvidenceReport,
     MatchType,
     OriginMatch,
-    Relation,
     Status,
 )
 from mergelens.origin.detector import (
@@ -20,10 +19,11 @@ from mergelens.scoring.engine import compute_side_score, evaluate_recommendation
 
 
 def test_cherry_pick_x_regex():
-    msg = """Fix bug in parser\n\n(cherry picked from commit 7a8b9c0d1e2f3a4b5c6d7e8f9a0b1c2d3e4f5a6b)"""
+    sha = "7a8b9c0d1e2f3a4b5c6d7e8f9a0b1c2d3e4f5a6b"
+    msg = f"Fix bug in parser\n\n(cherry picked from commit {sha})"
     m = CHERRY_PICK_X_RE.search(msg)
     assert m is not None
-    assert m.group(1) == "7a8b9c0d1e2f3a4b5c6d7e8f9a0b1c2d3e4f5a6b"
+    assert m.group(1) == sha
 
 
 def test_django_backport_regex():
@@ -103,4 +103,3 @@ def test_scoring_production_winner():
     assert rec.score_theirs == 100
     assert rec.score_ours == 15
     assert "THEIRS is the clear winner" in rec.reasons[0]
-

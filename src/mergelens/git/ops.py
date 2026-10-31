@@ -2,11 +2,10 @@
 
 from __future__ import annotations
 
-import re
 from dataclasses import dataclass
 from pathlib import Path
 
-from mergelens.errors import MergeLensError, NoMergeInProgress
+from mergelens.errors import NoMergeInProgress
 from mergelens.git.runner import run_git
 from mergelens.models import Operation, Side
 
@@ -51,7 +50,11 @@ def detect_operation(git_dir: Path) -> tuple[Operation, str | None]:
         return Operation.CHERRY_PICK, theirs
     if (git_dir / "rebase-merge").is_dir() or (git_dir / "rebase-apply").is_dir():
         # Look for stopped-sha or head-name
-        rebase_dir = git_dir / "rebase-merge" if (git_dir / "rebase-merge").is_dir() else git_dir / "rebase-apply"
+        rebase_dir = (
+            git_dir / "rebase-merge"
+            if (git_dir / "rebase-merge").is_dir()
+            else git_dir / "rebase-apply"
+        )
         stopped = rebase_dir / "stopped-sha"
         theirs = stopped.read_text(encoding="utf-8").strip() if stopped.is_file() else "REBASE_HEAD"
         return Operation.REBASE, theirs
@@ -80,7 +83,7 @@ def get_merge_context(root: Path, preview_branch: str | None = None) -> ActiveMe
         if mt_res.returncode != 0:
             for line in mt_res.stdout.splitlines():
                 line = line.strip()
-                if line and not line.startswith("CONFLICT") and not len(line) == 40:
+                if line and not line.startswith("CONFLICT") and len(line) != 40:
                     conflicted.append(line)
         return ActiveMergeContext(
             operation=Operation.MERGE,
@@ -247,4 +250,3 @@ def get_commit_log_info(root: Path, rev: str) -> dict[str, str]:
         "subject": parts[4] if len(parts) > 4 else "",
         "body": parts[5] if len(parts) > 5 else "",
     }
-

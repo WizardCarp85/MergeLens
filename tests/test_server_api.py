@@ -1,6 +1,7 @@
 """Tests for FastAPI backend sidecar endpoints."""
 
 from fastapi.testclient import TestClient
+
 from mergelens.server.app import create_app
 
 
@@ -54,4 +55,3 @@ def test_decision_posting_and_storage():
     assert res.status_code == 200
     assert res.json()["ok"] is True
     assert res.json()["saved"]["keep"] == "theirs"
-

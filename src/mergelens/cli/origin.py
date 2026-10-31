@@ -33,7 +33,7 @@ def main(
         commit_sha = chk.stdout.strip()
     except Exception as exc:
         err.print(f"[bad]error:[/bad] invalid commit {rev}: {exc}")
-        raise typer.Exit(2)
+        raise typer.Exit(2) from exc
 
     info = get_commit_log_info(cfg.root, commit_sha)
     matches = []
@@ -42,9 +42,11 @@ def main(
     candidates = []
     log_res = run_git(["log", "-n", "100", "--format=%H"], cwd=cfg.root, check=False)
     if log_res.ok:
-        candidates = [c.strip() for c in log_res.stdout.splitlines() if c.strip() and c.strip() != commit_sha]
+        candidates = [
+            c.strip() for c in log_res.stdout.splitlines() if c.strip() and c.strip() != commit_sha
+        ]
 
-    enabled_layers = [l.strip().lower() for l in layers.split(",")]
+    enabled_layers = [layer.strip().lower() for layer in layers.split(",")]
 
     # Layer 2: message refs
     if "messages" in enabled_layers:
@@ -68,16 +70,20 @@ def main(
         emit_json(payload)
         return
 
-    out.print(Panel(
-        f"[bold]{commit_sha[:10]}[/bold]: {info.get('subject', '')}\n"
-        f"Author: {info.get('author_name', '')} <{info.get('author_email', '')}>\n"
-        f"Date:   {info.get('date', '')}",
-        title="mergelens origin trace",
-        title_align="left",
-    ))
+    out.print(
+        Panel(
+            f"[bold]{commit_sha[:10]}[/bold]: {info.get('subject', '')}\n"
+            f"Author: {info.get('author_name', '')} <{info.get('author_email', '')}>\n"
+            f"Date:   {info.get('date', '')}",
+            title="mergelens origin trace",
+            title_align="left",
+        )
+    )
 
     if not matches:
-        out.print("[unknown]No upstream origin detected (independent change or root commit).[/unknown]")
+        out.print(
+            "[unknown]No upstream origin detected (independent change or root commit).[/unknown]"
+        )
         advisory_footer()
         return
 

@@ -9,9 +9,9 @@ from __future__ import annotations
 
 import re
 import subprocess
+from collections.abc import Sequence
 from dataclasses import dataclass
 from pathlib import Path
-from typing import Sequence
 
 from mergelens import MIN_GIT_VERSION, NOTES_REF
 from mergelens.errors import GitTooOld, MergeLensError, NotAGitRepo, WriteGuardError
@@ -102,7 +102,7 @@ def run_git(
         if subcmd == "commit":
             if not allow_commit:
                 raise WriteGuardError(
-                    "git commit is forbidden except when explicitly authorized via mergelens commit.",
+                    "git commit is forbidden except when authorized via mergelens commit.",
                     hint="Only `mergelens commit` is permitted to invoke git commit.",
                 )
         elif subcmd in WRITE_COMMANDS:
@@ -125,17 +125,14 @@ def run_git(
             )
 
     cmd = ["git", *args]
-    stdin_input = (
-        input_data.encode("utf-8") if isinstance(input_data, str) else input_data
-    )
+    stdin_input = input_data.encode("utf-8") if isinstance(input_data, str) else input_data
 
     try:
         proc = subprocess.run(
             cmd,
             cwd=str(cwd) if cwd else None,
             input=stdin_input,
-            stdout=subprocess.PIPE,
-            stderr=subprocess.PIPE,
+            capture_output=True,
             check=False,
         )
     except FileNotFoundError as err:
@@ -169,8 +166,9 @@ def get_git_version(cwd: Path | None = None) -> tuple[int, int, int]:
     patch = int(m.group(3) or 0)
     ver = (major, minor, patch)
     if ver < MIN_GIT_VERSION:
+        min_ver_str = ".".join(map(str, MIN_GIT_VERSION))
         raise GitTooOld(
-            f"Detected Git {ver[0]}.{ver[1]}.{ver[2]}, but mergelens requires >= {'.'.join(map(str, MIN_GIT_VERSION))}",
+            f"Detected Git {ver[0]}.{ver[1]}.{ver[2]}, but mergelens requires >= {min_ver_str}",
             hint="Please upgrade git.",
         )
     return ver

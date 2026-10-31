@@ -2,7 +2,9 @@
 
 import ast
 from pathlib import Path
+
 import pytest
+
 from mergelens.errors import WriteGuardError
 from mergelens.git.runner import run_git
 
@@ -37,4 +39,3 @@ def test_git_commit_requires_explicit_authorization():
     """Hard Invariant: Only mergelens commit may run git commit."""
     with pytest.raises(WriteGuardError):
         run_git(["commit", "-m", "unauthorized commit"], allow_commit=False)
-

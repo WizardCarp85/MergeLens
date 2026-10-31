@@ -25,19 +25,29 @@ def main(
     if action == "push":
         out.print(f"Pushing {NOTES_REF} to {remote}...")
         try:
-            res = run_git(["push", remote, f"{NOTES_REF}:{NOTES_REF}"], cwd=cfg.root, allow_write=True, check=True)
+            run_git(
+                ["push", remote, f"{NOTES_REF}:{NOTES_REF}"],
+                cwd=cfg.root,
+                allow_write=True,
+                check=True,
+            )
             out.print(f"[ok]Successfully pushed {NOTES_REF} to {remote}.[/ok]")
         except Exception as exc:
             err.print(f"[bad]Push failed:[/bad] {exc}")
-            raise typer.Exit(1)
+            raise typer.Exit(1) from exc
     elif action == "pull":
         out.print(f"Fetching {NOTES_REF} from {remote}...")
         try:
             # Fetch remote notes to temporary ref
             temp_ref = f"{NOTES_REF}_upstream"
-            run_git(["fetch", remote, f"{NOTES_REF}:{temp_ref}"], cwd=cfg.root, allow_write=True, check=False)
+            run_git(
+                ["fetch", remote, f"{NOTES_REF}:{temp_ref}"],
+                cwd=cfg.root,
+                allow_write=True,
+                check=False,
+            )
             # Merge notes append-only using cat_sort_uniq
-            merge_res = run_git(
+            run_git(
                 ["notes", f"--ref={NOTES_REF}", "merge", "-s", "cat_sort_uniq", temp_ref],
                 cwd=cfg.root,
                 allow_write=True,
@@ -46,4 +56,4 @@ def main(
             out.print(f"[ok]Successfully merged notes from {remote}.[/ok]")
         except Exception as exc:
             err.print(f"[bad]Pull failed:[/bad] {exc}")
-            raise typer.Exit(1)
+            raise typer.Exit(1) from exc

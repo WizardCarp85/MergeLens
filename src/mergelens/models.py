@@ -6,7 +6,7 @@ Recommendation, Decision, and AuditRecord.
 
 from __future__ import annotations
 
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from enum import StrEnum
 from typing import Any, Generic, TypeVar
 
@@ -144,15 +144,13 @@ class Decision(BaseModel):
     path: str
     keep: str  # "ours" | "theirs" | "combine" | "custom"
     reason: str
-    decided_at: str = Field(
-        default_factory=lambda: datetime.now(timezone.utc).isoformat()
-    )
+    decided_at: str = Field(default_factory=lambda: datetime.now(UTC).isoformat())
 
 
 class AuditRecord(BaseModel):
     id: str
     commit: str
-    when: str = Field(default_factory=lambda: datetime.now(timezone.utc).isoformat())
+    when: str = Field(default_factory=lambda: datetime.now(UTC).isoformat())
     path: str
     hunk_id: str | None = None
     keep: str

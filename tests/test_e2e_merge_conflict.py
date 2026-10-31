@@ -1,6 +1,5 @@
 """End-to-end integration test simulating a realistic backport merge conflict."""
 
-import os
 import shutil
 import tempfile
 from pathlib import Path

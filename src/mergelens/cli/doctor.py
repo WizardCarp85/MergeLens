@@ -70,9 +70,7 @@ def main() -> None:
     table.add_row(
         "notes.rewriteRef",
         _OK if notes_ok else "[warn]missing[/warn]",
-        "configured for refs/notes/mergelens"
-        if notes_ok
-        else "run: mergelens init",
+        "configured for refs/notes/mergelens" if notes_ok else "run: mergelens init",
     )
 
     out.print(table)

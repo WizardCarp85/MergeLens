@@ -7,7 +7,15 @@ and produces a recommended Action plus explanatory reasons.
 from __future__ import annotations
 
 from mergelens.config import ScoringConfig
-from mergelens.models import Action, EvidenceReport, MatchType, OriginMatch, Recommendation, Relation, Status
+from mergelens.models import (
+    Action,
+    EvidenceReport,
+    MatchType,
+    OriginMatch,
+    Recommendation,
+    Relation,
+    Status,
+)
 
 
 def compute_side_score(
@@ -49,7 +57,9 @@ def compute_side_score(
         reasons.append(f"+{cfg.provenance} Provenance verified: {origin.reason}")
         if origin.match_type in {MatchType.PATCH_ID, MatchType.CHERRY_PICK_X}:
             score += cfg.mainline_patch
-            reasons.append(f"+{cfg.mainline_patch} Origin matches upstream commit {origin.source_sha[:8]}")
+            reasons.append(
+                f"+{cfg.mainline_patch} Origin matches upstream commit {origin.source_sha[:8]}"
+            )
 
     return score, reasons
 
@@ -75,24 +85,35 @@ def evaluate_recommendation(
     if delta >= cfg.clear_winner_delta:
         action = Action.KEEP_THEIRS
         confidence = min(0.95, 0.65 + (delta / 100.0))
-        reasons.insert(0, f"THEIRS is the clear winner (+{delta} points ahead: superior testing provenance).")
+        reasons.insert(
+            0, f"THEIRS is the clear winner (+{delta} points ahead: superior testing provenance)."
+        )
     elif delta <= -cfg.clear_winner_delta:
         action = Action.KEEP_OURS
         confidence = min(0.95, 0.65 + (abs(delta) / 100.0))
-        reasons.insert(0, f"OURS is the clear winner (+{abs(delta)} points ahead: superior testing provenance).")
+        reasons.insert(
+            0,
+            f"OURS is the clear winner (+{abs(delta)} points ahead: superior testing provenance).",
+        )
     else:
         if relation == Relation.EQUIVALENT:
             action = Action.KEEP_OURS
             confidence = 0.90
-            reasons.insert(0, "Both sides are semantically equivalent. Retaining OURS avoids churn.")
+            reasons.insert(
+                0, "Both sides are semantically equivalent. Retaining OURS avoids churn."
+            )
         elif relation in {Relation.COMPLEMENTARY, Relation.SUPERSET_OURS, Relation.SUPERSET_THEIRS}:
             action = Action.COMBINE
             confidence = 0.75
-            reasons.insert(0, "Both sides contain distinct valid changes. Recommendation: combine both.")
+            reasons.insert(
+                0, "Both sides contain distinct valid changes. Recommendation: combine both."
+            )
         else:
             action = Action.NO_CLEAR_WINNER
             confidence = 0.50
-            reasons.insert(0, "No clear winner based on testing provenance. Manual inspection required.")
+            reasons.insert(
+                0, "No clear winner based on testing provenance. Manual inspection required."
+            )
 
     return Recommendation(
         action=action,
@@ -101,4 +122,3 @@ def evaluate_recommendation(
         score_theirs=score_theirs,
         reasons=reasons,
     )
-

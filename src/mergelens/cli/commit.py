@@ -44,7 +44,7 @@ def main(
         ctx = get_merge_context(cfg.root)
     except Exception as exc:
         err.print(f"[bad]error:[/bad] {exc}")
-        raise typer.Exit(1)
+        raise typer.Exit(1) from exc
 
     decisions = load_pending_decisions(cfg.root, ctx.merge_head_sha)
 
@@ -60,11 +60,13 @@ def main(
     )
 
     if dry_run:
-        out.print(Panel(
-            msg,
-            title="[bold]Dry Run: Commit Message & Trailers[/bold]",
-            title_align="left",
-        ))
+        out.print(
+            Panel(
+                msg,
+                title="[bold]Dry Run: Commit Message & Trailers[/bold]",
+                title_align="left",
+            )
+        )
         out.print(f"[hint]Pending decisions to attach: {len(decisions)}[/hint]")
         return
 
@@ -74,11 +76,11 @@ def main(
         commit_args.append("--edit")
 
     try:
-        res = run_git(commit_args, cwd=cfg.root, allow_commit=True, check=True)
+        run_git(commit_args, cwd=cfg.root, allow_commit=True, check=True)
     except Exception as exc:
         err.print(f"[bad]Commit failed:[/bad] {exc}")
         err.print("[hint]Ensure conflict resolution is staged before committing.[/hint]")
-        raise typer.Exit(1)
+        raise typer.Exit(1) from exc
 
     # Get newly created commit SHA
     new_head_res = run_git(["rev-parse", "HEAD"], cwd=cfg.root)
@@ -90,10 +92,12 @@ def main(
     # Clear pending decisions
     clear_pending_decisions(cfg.root, ctx.merge_head_sha)
 
-    out.print(Panel(
-        f"[ok]Committed merge {new_commit_sha[:10]}[/ok]\n"
-        f"Attached {len(decisions)} decision record(s) to refs/notes/mergelens\n"
-        f"Trailers recorded in commit message.",
-        title="mergelens commit successful",
-        title_align="left",
-    ))
+    out.print(
+        Panel(
+            f"[ok]Committed merge {new_commit_sha[:10]}[/ok]\n"
+            f"Attached {len(decisions)} decision record(s) to refs/notes/mergelens\n"
+            f"Trailers recorded in commit message.",
+            title="mergelens commit successful",
+            title_align="left",
+        )
+    )

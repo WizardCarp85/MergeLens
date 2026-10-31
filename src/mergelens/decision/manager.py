@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import contextlib
 import json
 from pathlib import Path
 
@@ -72,7 +73,7 @@ def compose_commit_message(
     lines.append(f"Mergelens-Theirs: {theirs_sha[:12]}")
 
     for d in decisions:
-        lines.append(f"Mergelens-Decision: {d.path}#{d.hunk_id} keep={d.keep} reason=\"{d.reason}\"")
+        lines.append(f'Mergelens-Decision: {d.path}#{d.hunk_id} keep={d.keep} reason="{d.reason}"')
 
     return "\n".join(lines).strip() + "\n"
 
@@ -117,14 +118,12 @@ def load_audit_records(root: Path) -> list[AuditRecord]:
     for line in res.stdout.splitlines():
         parts = line.split()
         if len(parts) >= 2:
-            note_blob, commit_sha = parts[0], parts[1]
+            note_blob, _commit_sha = parts[0], parts[1]
             content_res = run_git(["cat-file", "-p", note_blob], cwd=root, check=False)
             if content_res.ok:
                 for chunk in content_res.stdout.splitlines():
                     chunk = chunk.strip()
                     if chunk.startswith("{") and chunk.endswith("}"):
-                        try:
+                        with contextlib.suppress(Exception):
                             records.append(AuditRecord.model_validate(json.loads(chunk)))
-                        except Exception:
-                            pass
     return records

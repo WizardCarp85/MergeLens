@@ -21,7 +21,9 @@ from mergelens.origin.detector import detect_origin
 from mergelens.scoring.engine import compute_side_score, evaluate_recommendation
 
 
-def build_status_hunks(cfg: config.Config, preview: str | None = None) -> tuple[MergeContext, list[ConflictHunk]]:
+def build_status_hunks(
+    cfg: config.Config, preview: str | None = None
+) -> tuple[MergeContext, list[ConflictHunk]]:
     """Build complete MergeContext and analyzed ConflictHunks."""
     ctx = get_merge_context(cfg.root, preview_branch=preview)
     hunks: list[ConflictHunk] = []
@@ -41,7 +43,9 @@ def build_status_hunks(cfg: config.Config, preview: str | None = None) -> tuple[
                 path,
             )
             evidence_theirs = collect_evidence(cfg.root, ctx.merge_head_sha, cfg, origin_theirs)
-            score_theirs, reasons_theirs = compute_side_score(evidence_theirs, origin_theirs, cfg.scoring)
+            score_theirs, reasons_theirs = compute_side_score(
+                evidence_theirs, origin_theirs, cfg.scoring
+            )
 
             # Analyze OURS
             origin_ours = detect_origin(
@@ -87,7 +91,9 @@ def build_status_hunks(cfg: config.Config, preview: str | None = None) -> tuple[
                     sha=fdata.stage1_sha,
                     text="".join(hdata.base_lines),
                     lines=hdata.base_lines,
-                ) if fdata.stage1_sha or hdata.base_lines else None,
+                )
+                if fdata.stage1_sha or hdata.base_lines
+                else None,
                 recommendation=rec,
             )
             hunks.append(hunk)
@@ -124,7 +130,7 @@ def main(
         ctx, hunks = build_status_hunks(cfg, preview=preview)
     except Exception as exc:
         err.print(f"[bad]error:[/bad] {exc}")
-        raise typer.Exit(2)
+        raise typer.Exit(2) from exc
 
     if path:
         paths_set = set(path)
@@ -139,15 +145,19 @@ def main(
         return
 
     # Render human summary
-    mode_str = f"PREVIEW vs {ctx.theirs}" if ctx.is_preview else f"{ctx.operation.upper()} in progress"
-    out.print(Panel(
-        f"[bold]{mode_str}[/bold]\n"
-        f"[ours]OURS (HEAD):[/ours] {ctx.head[:10]} ({ctx.ours})\n"
-        f"[theirs]THEIRS (MERGE_HEAD):[/theirs] {ctx.merge_head[:10]} ({ctx.theirs})\n"
-        f"Conflicted files: [bold]{len(ctx.conflicted_files)}[/bold]",
-        title="mergelens conflict status",
-        title_align="left",
-    ))
+    mode_str = (
+        f"PREVIEW vs {ctx.theirs}" if ctx.is_preview else f"{ctx.operation.upper()} in progress"
+    )
+    out.print(
+        Panel(
+            f"[bold]{mode_str}[/bold]\n"
+            f"[ours]OURS (HEAD):[/ours] {ctx.head[:10]} ({ctx.ours})\n"
+            f"[theirs]THEIRS (MERGE_HEAD):[/theirs] {ctx.merge_head[:10]} ({ctx.theirs})\n"
+            f"Conflicted files: [bold]{len(ctx.conflicted_files)}[/bold]",
+            title="mergelens conflict status",
+            title_align="left",
+        )
+    )
 
     if not hunks:
         out.print("[ok]No conflicts found.[/ok]")

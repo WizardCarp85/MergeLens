@@ -10,8 +10,8 @@ from __future__ import annotations
 
 import difflib
 import re
+from collections.abc import Sequence
 from pathlib import Path
-from typing import Sequence
 
 from mergelens.git.ops import get_commit_log_info
 from mergelens.git.runner import run_git
@@ -147,14 +147,16 @@ def find_l3_hunk_patch_id_match(
         return None
     # Fabricate a unified diff hunk for git patch-id
     synthetic_diff = f"--- a/{path}\n+++ b/{path}\n@@ -1,1 +1,{len(hunk_lines)} @@\n" + "".join(
-        f"+{l}" if not l.startswith("+") else l for l in hunk_lines
+        f"+{line}" if not line.startswith("+") else line for line in hunk_lines
     )
     hunk_pid = compute_patch_id(root, synthetic_diff)
     if not hunk_pid:
         return None
 
     for cand in candidate_commits:
-        diff_res = run_git(["show", "--format=", "--unified=0", cand, "--", path], cwd=root, check=False)
+        diff_res = run_git(
+            ["show", "--format=", "--unified=0", cand, "--", path], cwd=root, check=False
+        )
         if diff_res.ok and diff_res.stdout:
             cand_pid = compute_patch_id(root, diff_res.stdout)
             if cand_pid and cand_pid == hunk_pid:
@@ -198,12 +200,13 @@ def find_l4_ast_similarity_match(
     ratio = matcher.ratio()
 
     if ratio >= 0.65:
+        src_label = source_sha[:10] if source_sha else "upstream"
         return OriginMatch(
             match_type=MatchType.AST_SIMILAR,
             source_sha=source_sha,
             target_sha=target_sha,
             confidence=round(ratio * 0.85, 2),
-            reason=f"Content token similarity {int(ratio * 100)}% with {source_sha[:10] if source_sha else 'upstream'}",
+            reason=f"Content token similarity {int(ratio * 100)}% with {src_label}",
             details={"similarity_ratio": round(ratio, 3)},
         )
 
