@@ -1,0 +1,12 @@
+@import "tailwindcss";
+
+/* Mirrors the Rich theme in src/mergelens/cli/_console.py: ours = cyan, theirs = magenta. */
+@theme {
+  --color-ours: #22d3ee;
+  --color-theirs: #e879f9;
+  --color-base: #a1a1aa;
+}
+
+:root {
+  color-scheme: dark;
+}

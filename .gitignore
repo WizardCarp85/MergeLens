@@ -1,0 +1,32 @@
+# OS files
+.DS_Store
+*/.DS_Store
+
+# Node (workspace root + web/)
+node_modules/
+web/.next/
+web/out/
+web/next-env.d.ts
+*.tsbuildinfo
+npm-debug.log*
+
+# Python
+__pycache__/
+*.py[cod]
+.venv/
+dist/
+build/
+*.egg-info/
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+.hypothesis/
+
+# Dashboard build output, copied into the wheel by scripts/build_web.py
+src/mergelens/server/static/*
+!src/mergelens/server/static/.gitkeep
+
+# Local mergelens state lives under .git/mergelens and is never committed.
+.mergelens/
+.env
+.env.*
