@@ -1,0 +1,14 @@
+{
+  "name": "mergelens-repo",
+  "private": true,
+  "description": "Repo root for mergelens. The product is the Python package in src/mergelens (see pyproject.toml); the dashboard is the npm workspace in web/. This file only lets the hosted preview run build/start/typecheck from the root.",
+  "workspaces": [
+    "web"
+  ],
+  "scripts": {
+    "build": "npm run build --workspace web",
+    "start": "node scripts/preview_server.mjs",
+    "lint": "npm run lint --workspace web",
+    "typecheck": "tsc --noEmit"
+  }
+}

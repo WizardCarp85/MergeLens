@@ -1,0 +1,17 @@
+{
+  // Tooling glue only: lets `tsc --noEmit` run from the repo root (hosted preview checks).
+  // The real TypeScript config for the dashboard lives in web/tsconfig.json.
+  "extends": "./web/tsconfig.json",
+  "compilerOptions": {
+    "incremental": false,
+    "plugins": []
+  },
+  "include": [
+    "web/next-env.d.ts",
+    "web/next.config.ts",
+    "web/src/**/*.ts",
+    "web/src/**/*.tsx",
+    "web/.next/types/**/*.ts"
+  ],
+  "exclude": ["node_modules", "web/node_modules", "web/out"]
+}

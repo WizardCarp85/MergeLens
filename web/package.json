@@ -1,0 +1,29 @@
+{
+  "name": "mergelens-web",
+  "version": "0.1.0",
+  "private": true,
+  "description": "mergelens dashboard. Static export (output: \"export\") served by the Python process; all data comes from the FastAPI sidecar started by `mergelens ui`.",
+  "scripts": {
+    "dev": "next dev",
+    "build": "next build",
+    "serve": "node ../scripts/preview_server.mjs",
+    "lint": "eslint .",
+    "typecheck": "tsc --noEmit"
+  },
+  "dependencies": {
+    "next": "16.2.6",
+    "react": "19.2.6",
+    "react-dom": "19.2.6"
+  },
+  "devDependencies": {
+    "@tailwindcss/postcss": "4.1.17",
+    "@types/node": "22.19.15",
+    "@types/react": "19.2.14",
+    "@types/react-dom": "19.2.3",
+    "eslint": "9.39.4",
+    "eslint-config-next": "16.2.6",
+    "postcss": "8.5.8",
+    "tailwindcss": "4.1.17",
+    "typescript": "5.9.3"
+  }
+}
