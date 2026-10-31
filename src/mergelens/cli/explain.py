@@ -120,7 +120,7 @@ def main(
     for r in results:
         out.print(
             Panel(
-                r["explanation"],
+                str(r["explanation"]),
                 title=f"Conflict Explanation: {r['hunk_id']} (line {r['start_line']})",
                 title_align="left",
             )

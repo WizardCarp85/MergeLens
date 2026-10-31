@@ -25,7 +25,7 @@ def compute_side_score(
 ) -> tuple[int, list[str]]:
     """Compute score for one side based on its testing evidence and origin."""
     score = 0
-    reasons = []
+    reasons: list[str] = []
 
     if not evidence:
         return score, reasons
